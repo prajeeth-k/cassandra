@@ -1,0 +1,130 @@
+Cassandra is using Gossip Protocol so whenever any node starts, it obtains information about the other nodes by exchanging information with each other.
+
+
+A Partitioner is responsible for preparing the set of data for each node.
+Cassandra has three different types of Partitioners, Murmur3Partitioner (default), RandomPartitioner and a ByteOrderedPartitioner.
+
+Each node is performing replications of data basis on defined replication strategy. Basically there two types of replication strategy, one is Simple Strategy and second is Network Topology Strategy.A Simple Strategy works in the clockwise, and Network Topology works for multiple data centres.
+
+Cannot execute this query as it might involve data filtering and thus may have unpredictable performance. If you want to execute this query despite the performance unpredictability, use ALLOW FILTERING"
+SELECT Count(*) 
+FROM   employee 
+WHERE  age>25 allow filtering;
+
+How to find all keyspaces
+Connect as normal user
+select * from system_schema.keyspaces;
+
+
+TABLES IN KEYSPACE
+select keyspace_name, table_name FROM system_schema.tables WHERE keyspace_name = 'testks';
+
+ keyspace_name | table_name
+---------------+------------
+        testks |   employee
+        testks |     sample
+        testks |      users
+
+select ID, keyspace_name, table_name, compaction, flags, read_repair_chance from system_schema.tableS where keyspace_name = 'testks';
+ id                                   | keyspace_name | table_name | compaction                                                                                                                 | flags        |                              read_repair_chance
+--------------------------------------+---------------+------------+----------------------------------------------------------------------------------------------------------------------------+--------------+                             --------------------
+ a9638040-5658-11e6-958c-03778a85e518 |        testks |   employee | {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '16'} | {'compound'} |                                               1
+ ddad4300-dee8-11ea-9e2b-6f1ac928f4f3 |        testks |     sample |  {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'} | {'compound'} |                                               0
+ 19b328c0-6ed5-11e6-9818-954dbda65439 |        testks |      users |  {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'} | {'compound'} |                                               0
+
+(3 rows)
+
+COLUMNS IN A TABLE
+SELECT * FROM system_schema.columns WHERE keyspace_name = 'testks' AND table_name = 'employee';
+ keyspace_name | table_name | column_name | clustering_order | column_name_bytes | kind          | position | type
+---------------+------------+-------------+------------------+-------------------+---------------+----------+-----------
+        testks |   employee |         age |             none |          0x616765 |       regular |       -1 |       int
+        testks |   employee |         doj |             none |          0x646f6a |       regular |       -1 | timestamp
+        testks |   employee |       empid |             none |      0x656d706964 | partition_key |        0 |      text
+        testks |   employee |       fname |             none |      0x666e616d65 |       regular |       -1 |      text
+        testks |   employee |       lname |             none |      0x6c6e616d65 |       regular |       -1 |      text
+
+
+As Normal user
+prajeeth@cqlsh> describe tables;
+prajeeth@cqlsh> desc keyspaces;
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HOW TO VIEW ALL USERS
+prajeeth@cqlsh> list users; << Depricated
+ name     | super
+----------+-------
+ prajeeth | False
+
+
+prajeeth@cqlsh> list roles;
+
+ role     | super | login | options
+----------+-------+-------+---------
+ prajeeth | False |  True |        {}
+
+CONNECT AS SUPERUSER
+
+dba@cqlsh> list roles;
+
+ role      | super | login | options
+-----------+-------+-------+---------
+ cassandra |  True |  True |        {}
+       dba |  True |  True |        {}
+  prajeeth | False |  True |        {}
+
+
+
+desc keyspace system_schema;
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+prajeeth@cqlsh> desc testks;
+
+
+CREATE KEYSPACE testks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true;
+
+CREATE TYPE testks.fullname (
+    firstname text,
+    lastname text
+);
+
+CREATE TABLE testks.employee (
+    empid text PRIMARY KEY,
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Complete CREATE TABLE command
+CREATE TABLE testks.query_test (
+    pk1 text,
+    pk2 text,
+    ck3 text,
+    ck4 text,
+    PRIMARY KEY ((pk1, pk2), ck3, ck4)
+) WITH CLUSTERING ORDER BY (ck3 DESC, ck4 ASC)
+    AND bloom_filter_fp_chance = 0.01
+    AND caching = {'keys': 'ALL', 'rows_per_partition': 'NONE'}
+    AND comment = ''
+    AND compaction = {'class': 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy', 'max_threshold': '32', 'min_threshold': '4'}
+    AND compression = {'chunk_length_in_kb': '64', 'class': 'org.apache.cassandra.io.compress.LZ4Compressor'}
+    AND crc_check_chance = 1.0
+    AND dclocal_read_repair_chance = 0.1
+    AND default_time_to_live = 0
+    AND gc_grace_seconds = 864000
+    AND max_index_interval = 2048
+    AND memtable_flush_period_in_ms = 0
+    AND min_index_interval = 128
+    AND read_repair_chance = 0.0
+    AND speculative_retry = '99PERCENTILE';
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+prajeeth@cqlsh:testks> select key, broadcast_address, cluster_name, data_center, host_id, listen_address, rack, rpc_address, thrift_version from system.local;
+
+ key   | broadcast_address | cluster_name | data_center | host_id                              | listen_address | rack  | rpc_address  | thrift_version
+-------+-------------------+--------------+-------------+--------------------------------------+----------------+-------+--------------+----------------
+ local |      192.168.1.21 |   cassandra1 |         dc1 | 0ef7683e-c586-4ae1-b222-9bb774704086 |   192.168.1.21 | rack1 | 192.168.1.21 |         20.1.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+

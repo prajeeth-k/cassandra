@@ -1,0 +1,70 @@
+nodetool status
+
+nodetool info
+
+ID                     : 0ef7683e-c586-4ae1-b222-9bb774704086
+Gossip active          : true
+Thrift active          : true
+Native Transport active: true
+Load                   : 169.04 KiB
+Generation No          : 1469874688
+Uptime (seconds)       : 15614
+Heap Memory (MB)       : 64.14 / 1004.00
+Off Heap Memory (MB)   : 0.00
+Data Center            : dc1
+Rack                   : rack1
+Exceptions             : 0
+Key Cache              : entries 17, size 1.33 KiB, capacity 50 MiB, 225 hits, 249 requests, 0.904 recent hit rate, 14400 save period in seconds
+Row Cache              : entries 0, size 0 bytes, capacity 0 bytes, 0 hits, 0 requests, NaN recent hit rate, 0 save period in seconds
+Counter Cache          : entries 0, size 0 bytes, capacity 25 MiB, 0 hits, 0 requests, NaN recent hit rate, 7200 save period in seconds
+Chunk Cache            : entries 21, size 1.31 MiB, capacity 219 MiB, 52 misses, 464 requests, 0.888 recent hit rate, 549.233 microseconds miss latency
+Token                  : (invoke with -T/--tokens to see all 256 tokens)
+
+
+
+
+[bigdata@orcl1 bin]$ ./nodetool tpstats
+Pool Name                    Active   Pending      Completed   Blocked  All time blocked
+MutationStage                     0         0           1137         0                 0
+ViewMutationStage                 0         0              0         0                 0
+ReadStage                         0         0            130         0                 0
+RequestResponseStage              0         0              0         0                 0
+ReadRepairStage                   0         0              0         0                 0
+CounterMutationStage              0         0              0         0                 0
+MiscStage                         0         0              0         0                 0
+CompactionExecutor                0         0           8683         0                 0
+MemtableReclaimMemory             0         0             39         0                 0
+PendingRangeCalculator            0         0              1         0                 0
+GossipStage                       0         0              0         0                 0
+SecondaryIndexManagement          0         0              0         0                 0
+HintsDispatcher                   0         0              0         0                 0
+MigrationStage                    0         0              1         0                 0
+MemtablePostFlush                 0         0             67         0                 0
+PerDiskMemtableFlushWriter_0         0         0             39         0                 0
+ValidationExecutor                0         0              0         0                 0
+Sampler                           0         0              0         0                 0
+MemtableFlushWriter               0         0             39         0                 0
+InternalResponseStage             0         0              0         0                 0
+AntiEntropyStage                  0         0              0         0                 0
+CacheCleanupExecutor              0         0              0         0                 0
+Native-Transport-Requests         0         0           6454         0                 0
+
+Message type           Dropped
+READ                         0
+RANGE_SLICE                  0
+_TRACE                       0
+HINT                         0
+MUTATION                     0
+COUNTER_MUTATION             0
+BATCH_STORE                  0
+BATCH_REMOVE                 0
+REQUEST_RESPONSE             0
+PAGED_RANGE                  0
+READ_REPAIR                  0
+
+
+./nodetool tablestats testks.employee
+
+
+./nodetool tablestats testks
+

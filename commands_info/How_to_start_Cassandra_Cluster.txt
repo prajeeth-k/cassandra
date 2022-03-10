@@ -1,0 +1,167 @@
+[oracle@orcl opt]$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda6       9.7G  444M  8.7G   5% /
+tmpfs           3.9G   72K  3.9G   1% /dev/shm
+/dev/sda1       2.0G   64M  1.8G   4% /boot
+/dev/sda2        25G   20G  3.5G  85% /opt
+/dev/sda8       5.8G  140M  5.4G   3% /tmp
+/dev/sda3        15G   14G  535M  97% /u01
+/dev/sda10       14G   13G  560M  96% /u2
+/dev/sda5        15G  7.9G  5.9G  58% /usr
+/dev/sda7       9.7G  469M  8.7G   6% /var
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HOW TO START CASSANDRA
+
+BEFORE STARTING CASSANDRA
+cat /etc/hosts must have hostname
+
+
+JAVA_HOME=/u2/java/jdk1.8.0_181
+export JAVA_HOME
+
+CASSANDRA_HOME=/opt/apache/apache-cassandra-3.11.12
+export CASSANDRA_HOME
+
+CASSANDRA_CONF=${CASSANDRA_HOME}/conf
+export CASSANDRA_CONF
+
+
+CASSANDRA_INCLUDE=${CASSANDRA_HOME}/bin/cassandra.in.sh
+export CASSANDRA_INCLUDE
+
+cd /opt/apache/apache-cassandra-3.11.12/bin/
+[bigdata@node1 bin]$ ./cassandra -p /tmp/cassandra_pid.pid
+Always use -p /<pid file> so that Linux "kill" command can use the pid in the file as below
+kill `cat <pidfile>`
+
+~~ After starting ~~
+Check for below in the startup screen log
+Configuration location: file:/opt/apache/apache-cassandra-3.7/conf/cassandra.yaml
+
+[bigdata@node1 conf]$  lsof -i -P -n
+COMMAND  PID    USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    6946 bigdata   75u  IPv4  42246      0t0  TCP 192.168.1.21:7000 (LISTEN)
+java    6946 bigdata   90u  IPv4  42084      0t0  TCP 127.0.0.1:7199 (LISTEN)
+java    6946 bigdata   91u  IPv4  42085      0t0  TCP 127.0.0.1:56796 (LISTEN)
+java    6946 bigdata   93u  IPv4  95419      0t0  TCP 192.168.1.21:9042->192.168.1.21:36254 (ESTABLISHED)
+java    6946 bigdata   94u  IPv4  95423      0t0  TCP 192.168.1.21:9042->192.168.1.21:36255 (ESTABLISHED)
+java    6946 bigdata   98u  IPv4  42312      0t0  TCP 192.168.1.21:9042 (LISTEN)
+java    6946 bigdata  112u  IPv4  42313      0t0  TCP 192.168.1.21:9160 (LISTEN)
+python  7226 bigdata    3u  IPv4  95418      0t0  TCP 192.168.1.21:36254->192.168.1.21:9042 (ESTABLISHED)
+python  7226 bigdata    4u  IPv4  95422      0t0  TCP 192.168.1.21:36255->192.168.1.21:9042 (ESTABLISHED)
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~ ERRORS ~~
+Exception (org.apache.cassandra.exceptions.ConfigurationException) encountered during startup: Unknown listen_address 'orcl1'
+Unknown listen_address 'orcl1'
+ERROR 09:59:13 Exception encountered during startup: Unknown listen_address 'orcl1'
+
+~~ RCA ~~
+Entry for host name "orcl1" where Cassandra is run was missing in /etc/hosts
+
+~~ REMEDY ~~
+Add the host name in /etc/hosts 
+cat /etc/hosts
+192.168.1.21 orcl1
+
+and restart the cassandra using 
+CASSANDRA_INCLUDE=/opt/apache/apache-cassandra-3.7/bin/cassandra.in.sh
+export CASSANDRA_INCLUDE
+[bigdata@node1 /opt/apache/apache-cassandra-3.7/bin]$ ./cassandra -p /tmp/cassandra_pid.pid
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~~ Files used while Cassandra is started ~~
+$CASSANDRA_HOME/conf/cassandra-env.sh
+$CASSANDRA_HOME/conf/cassandra.yaml
+$CASSANDRA_HOME/conf/logback.xml
+$CASSANDRA_HOME/conf/cassandra-topology.properties 
+
+$CASSANDRA_HOME/bin/cassandra.in.sh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~ ERRORS ~~
+[bigdata@node1 bin]$ /opt/apache/apache-cassandra-3.7/bin/cqlsh
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed('Remote end requires authentication.',)})
+
+~~ RCA ~~
+username with -u option and password with -p option and keyspace with -k option was not provided
+
+~~ REMEDY ~~
+[bigdata@node1 bin]$ /opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p prajeeth -k testks
+
+This command will work where username, password and keyspace are provided in cqlsh 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CONNECTING USING CQLSH
+/opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p prajeeth -k testks
+
+tail /home/bigdata/employee.sql
+
+./cqlsh -f /home/bigdata/employee.sql
+
+
+NODETOOLS COMMANDS
+./nodetool info
+
+./nodetool -T info
+
+./nodetool --tokens
+
+./nodetool tablestatus
+
+./nodetool tablestats testks.employee
+
+./nodetool tablestats testks
+
+./nodetool status
+
+jvmstat
+jstat 4301 1s 55
+jstat -gc 4301 1s 55
+
+
+cat -n cassandra.yaml | storage_port
+cat -n cassandra.yaml | grep -i storage_port
+cat -n cassandra.yaml | grep -v grep | grep -i listen_address
+cat -n cassandra.yaml | grep -v grep | grep -i listen_interface
+cat -n cassandra.yaml | grep -v grep | grep -i native_transport_port
+
+jstat
+jstat -help
+jstat -options
+jstat -gc
+jstat -gc  4301 1 5
+jstat -gc  1 5
+jstat -gc -t 4301 1 5
+
+jstat -gc -t 5378 1 5
+jstat -gc 5378 1 5
+
+tasklist
+
+jstatd -J-Djava.security.policy=/home/root/.jstatd.all.policy
+
+
+orcl1/192.168.1.21:7000
+
+$(( )) and no $( ) are not POSIX compliant
+
+cassandra_parms="-Dlogback.configurationFile=logback.xml"
+cassandra_parms="$cassandra_parms -Dcassandra.logdir=$CASSANDRA_HOME/logs"
+cassandra_parms="$cassandra_parms -Dcassandra.storagedir=$cassandra_storagedir"
+cassandra_parms="$cassandra_parms -Dcassandra-pidfile=$pidpath"
+
+cassandra_parms="$cassandra_parms -Dcassandra-foreground=yes"
+
+https://cassandra.apache.org/doc/latest/configuration/cassandra_config_file.html
+
+cassandra-env.sh
+
+vi:ai sw=4 ts=4 tw=0 et
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+

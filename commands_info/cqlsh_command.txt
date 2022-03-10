@@ -1,0 +1,190 @@
+~~ Connect to CQLSH ~~
+
+LD_LIBRARY_PATH=/opt/apache/apache-cassandra-3.7/lib:/usr/local/lib/
+export LD_LIBRARY_PATH
+
+~~ As NOSUPER USER (default Cassandra admin user)
+/opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p prajeeth -k testks
+Connected to cassandra1 at orcl1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+
+~~ As SUPER USER
+/opt/apache/apache-cassandra-3.7/bin/cqlsh orcl1 -u cassandra -p cassandra
+Connected to cassandra1 at orcl1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+
+How to create a SUPER USER
+CREATE USER dba WITH PASSWORD 'redhat' SUPERUSER;
+
+HOW TO CHANGE PASSWORD OF A USER
+ALTER USER prajeeth WITH PASSWORD 'new password'; (Need to quote password or will get message : SyntaxException: <ErrorMessage code=2000 [Syntax error in CQL query] message="line 1:34 mismatched input 'prajeeth' expecting STRING_LITERAL (alter user prajeeth with password [prajeeth];)">
+
+NEED TO KNOW
+$CASSANDRA_HOME/bin/cqlsh calls $CASSANDRA_HOME/bin/cqlsh.py
+
+Login in with wrong password will give below error message
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CREATE KEYSPACE
+---------------------------------
+create keyspace testks with replication = {'class' : 'SimpleStrategy', 'replication_factor' : 1};
+
+CREATE KEYSPACE IF NOT EXISTS dbrnd WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};
+
+Creating internal user accounts 
+-----------------------------------
+create user prajeeth with password 'prajeeth' NOSUPERUSER
+
+DESCRIBE
+-----------------------------------
+desc keyspaces
+testks  system_schema  system_auth  system  system_distributed  system_traces
+
+cqlsh> desc testks
+
+CREATE KEYSPACE testks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} 
+ AND durable_writes = true;
+
+cqlsh> use testks
+   ... ;
+
+CONNECTING TO CQLSH
+-----------------------------------
+LD_LIBRARY_PATH=/opt/apache/apache-cassandra-3.7/lib:/usr/local/lib/
+export LD_LIBRARY_PATH
+
+bigdata@orcl1 ~]$ /opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p redhat -k testks
+Connected to cassandra1 at orcl1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+prajeeth@cqlsh:testks>
+
+
+CREATE TABLE
+------------------------------------
+CREATE TABLE testks.employee (
+   empid varchar,
+   fname varchar,
+   lname varchar,
+   age int,
+   doj timestamp,
+   primary key (empid)
+)
+WITH comment = 'My first table'
+AND read_repair_chance = 1.0
+AND compaction =
+ {'class' : 'SizeTieredCompactionStrategy', 'min_threshold' : 16};
+
+
+  ascii - strings
+  bigint - inegers (64bit signed)
+  blob = blobs
+  b
+
+
+prajeeth@cqlsh:testks> select * from employee;
+
+ empid | age | doj | fname | lname
+-------+-----+-----+-------+-------
+
+(0 rows)
+
+
+
+cassandra@cqlsh:system_schema> list users;
+
+ name      | super
+-----------+-------
+ cassandra |  True
+  prajeeth | False
+
+(2 rows)
+
+
+SET 
+cassandra@cqlsh> list all permissions of prajeeth;
+
+ role | resource | permissions
+------+----------+-------------
+
+(0 rows)
+
+
+
+
+CREATE TYPE testks.fullname (
+  firstname text,
+  lastname text
+);
+
+Unauthorized: code=2100 [Unauthorized] message="User prajeeth has no CREATE permission on <keyspace testks> or any of its parents"
+SyntaxException: <ErrorMessage code=2000 [Syntax error in CQL query] message="line 1:0 no viable alternative at input ';' ([;])">
+
+login as superuser
+GRANT create PERMISSION ON KEYSPACE testks TO prajeeth;
+
+
+CREATE TABLE testks.users (
+  id uuid PRIMARY KEY,
+  name frozen <fullname>,
+  direct_reports frozen <fullname>
+);
+
+INSERT INTO testks.users (id, name) VALUES (62c36092-82a1-3a00-93d1-46196ee77204, {firstname: 'Marie-Claude', lastname: 'Josset'});
+
+
+cassandra.yaml:authorizer: AllowAllAuthorizer
+cassandra.yaml:authorizer: CassandraAuthorizer
+
+
+GRANT SELECT PERMISSION ON testks.employee TO prajeeth;
+------------------------------------------------------------------------------------------------------------------------------------------
+CREATE COLUMNFAMILY profile (
+   id varchar,
+   account varchar,
+   advertising varchar,
+   behavior varchar,
+   info varchar,
+   PRIMARY KEY (id)
+);
+
+CREATE COLUMNFAMILY sample (
+   rowkey text,
+   ts timestamp,
+   PRIMARY KEY(rowkey)
+);
+
+INSERT INTO sample (rowkey, ts ) VALUES ( '1','1366354711797');
+// ts value is basically the System.currentTimeMillis(), I mean a long value
+
+INSERT INTO sample (rowkey, ts) VALUES ('2', System.currentTimeMillis());
+InvalidRequest: code=2200 [Invalid query] message="Unknown function system.currenttimemillis called"
+
+
+INSERT INTO sample (rowkey, nameval ) VALUES ( '2','Thomas');
+-- Wrong INSERT, there is no NAMEVAL column in the FAMILY sample
+
+https://cassandra.apache.org/doc/latest/tools/cqlsh.html
+------------------------------------------------------------------------------------------------------------------------------------------
+
+SHOW VERSION;
+
+dba@cqlsh> show host;
+Connected to cassandra1 at orcl1:9042.
+
+DESCRIBE SCHEMA
+DESCRIBE KEYSPACES
+DESCRIBE KEYSPACE <keyspace name>
+DESCRIBE TABLES
+DESCRIBE TABLE <table name>
+DESCRIBE INDEX <index name>
+DESCRIBE MATERIALIZED VIEW <view name>
+DESCRIBE TYPES
+DESCRIBE TYPE <type name>
+DESCRIBE FUNCTIONS
+DESCRIBE FUNCTION <function name>
+DESCRIBE AGGREGATES
+DESCRIBE AGGREGATE <aggregate function name>
+

@@ -1,0 +1,44 @@
+[bigdata@orcl1 conf]$ grep "authenticator" *
+cassandra.yaml:#   Please increase system_auth keyspace replication factor if you use this authenticator.
+cassandra.yaml:authenticator: AllowAllAuthenticator
+cassandra.yaml:# internode_authenticator: org.apache.cassandra.auth.AllowAllInternodeAuthenticator
+cassandra.yaml.original:#   Please increase system_auth keyspace replication factor if you use this authenticator.
+cassandra.yaml.original:authenticator: AllowAllAuthenticator
+cassandra.yaml.original:# internode_authenticator: org.apache.cassandra.auth.AllowAllInternodeAuthenticator
+
+
+
+[bigdata@orcl1 bin]$ ./cqlsh -u prajeeth -p redhat1 -k testks
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
+[bigdata@orcl1 bin]$ ./cqlsh -u prajeeth -p redhat -k testks
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
+[bigdata@orcl1 bin]$ ./cqlsh -u prajeeth -p prajeeth -k testks
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
+[bigdata@orcl1 bin]$ ./cqlsh -u cassandra -p cassandra
+Connected to cassandra1 at orcl1:9042.
+[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
+Use HELP for help.
+cassandra@cqlsh>
+cassandra@cqlsh>
+cassandra@cqlsh>
+cassandra@cqlsh> SELECT * FROM system.schema_keyspaces;
+InvalidRequest: code=2200 [Invalid query] message="unconfigured table schema_keyspaces"
+cassandra@cqlsh>
+
+CREATE USER IF NOT EXISTS <user_name> WITH PASSWORD '<password>' ( NOSUPERUSER | SUPERUSER )
+
+CREATE USER prajeeth WITH PASSWORD 'prajeeth' NOSUPERUSER;
+
+cassandra@cqlsh:system_schema> select * from system_schema.keyspaces;
+
+ keyspace_name      | durable_writes | replication
+--------------------+----------------+-------------------------------------------------------------------------------------
+        system_auth |           True | {'class': 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '1'}
+      system_schema |           True |                             {'class': 'org.apache.cassandra.locator.LocalStrategy'}
+             testks |           True | {'class': 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '1'}
+ system_distributed |           True | {'class': 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '3'}
+             system |           True |                             {'class': 'org.apache.cassandra.locator.LocalStrategy'}
+      system_traces |           True | {'class': 'org.apache.cassandra.locator.SimpleStrategy', 'replication_factor': '2'}
+
+
+
