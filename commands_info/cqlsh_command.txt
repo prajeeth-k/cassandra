@@ -120,23 +120,7 @@ prajeeth@cqlsh:testks> select * from employee;
 
 
 
-cassandra@cqlsh:system_schema> list users;
 
- name      | super
------------+-------
- cassandra |  True
-  prajeeth | False
-
-(2 rows)
-
-
-SET 
-cassandra@cqlsh> list all permissions of prajeeth;
-
- role | resource | permissions
-------+----------+-------------
-
-(0 rows)
 
 
 
@@ -194,11 +178,32 @@ INSERT INTO sample (rowkey, nameval ) VALUES ( '2','Thomas');
 -- Wrong INSERT, there is no NAMEVAL column in the FAMILY sample
 
 https://cassandra.apache.org/doc/latest/tools/cqlsh.html
-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ CQLSH COMMANDS ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+
+
+
+cassandra@cqlsh:system_schema> list users;
+
+ name      | super
+-----------+-------
+ cassandra |  True
+  prajeeth | False
+
+(2 rows)
+
+
+cassandra@cqlsh> list all permissions of prajeeth;
+
+ role | resource | permissions
+------+----------+-------------
+
+(0 rows)
+
 
 show version;
-
-
 
 dba@cqlsh> help
 
@@ -249,6 +254,10 @@ DESCRIBE FUNCTIONS
 DESCRIBE FUNCTION <function name>
 DESCRIBE AGGREGATES
 DESCRIBE AGGREGATE <aggregate function name>
+
+
+
+
 
 ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  PERMISSIONS  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
 
