@@ -202,6 +202,11 @@ cassandra@cqlsh> list all permissions of prajeeth;
 
 (0 rows)
 
+cassandra@cqlsh> list all permissions;
+
+ role      | username  | resource                  | permission
+-----------+-----------+---------------------------+------------
+
 
 show version;
 
@@ -263,7 +268,7 @@ DESCRIBE AGGREGATE <aggregate function name>
 
 https://cassandra.apache.org/doc/latest/cassandra/cql/security.html#cql-permissions
 https://docs.datastax.com/en/cql-oss/3.3/cql/cql_reference/cqlRevoke.html
-
+https://docs.datastax.com/en/cql-oss/3.3/cql/cql_using/useSecurePermission.html
 
 GRANT
 GRANT privilege  ON resource TO role_name
@@ -274,15 +279,14 @@ REVOKE privilege  ON resource_name FROM role_name;
 
 PERMISSIONS/PRIVILEGES
 ALL PERMISSIONS
-ALTER
-AUTHORIZE
-CREATE
-DESCRIBE
-DROP
-EXECUTE
-MODIFY
-REVOKE
-SELECT
+ALTER - keyspace, table, function, role
+AUTHORIZE - GRANT PERMISSION, REVOKE PERMISSION - keyspace, table, function, and role
+CREATE - keyspace, table, function, role, index
+DESCRIBE - LIST ROLES
+DROP - keyspace, table, function, role, index
+EXECUTE - SELECT, INSERT, UPDATE - functions
+MODIFY - INSERT, UPDATE, DELETE, TRUNCATE - keyspace, table
+SELECT - keyspace, table
 
 RESOURCES
 ALL FUNCTIONS
