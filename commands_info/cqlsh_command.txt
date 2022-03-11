@@ -1,69 +1,96 @@
-~~ Connect to CQLSH ~~
+
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  HOW TO CONNECT TO CQLSH  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
 
 LD_LIBRARY_PATH=/opt/apache/apache-cassandra-3.7/lib:/usr/local/lib/
 export LD_LIBRARY_PATH
 
-~~ As NOSUPER USER (default Cassandra admin user)
+1. As NOSUPER USER
 /opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p prajeeth -k testks
 Connected to cassandra1 at orcl1:9042.
 [cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
 
-~~ As SUPER USER
+2. As SUPER USER
 /opt/apache/apache-cassandra-3.7/bin/cqlsh orcl1 -u cassandra -p cassandra
 Connected to cassandra1 at orcl1:9042.
 [cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
 Use HELP for help.
 
-How to create a SUPER USER
-CREATE USER dba WITH PASSWORD 'redhat' SUPERUSER;
 
-HOW TO CHANGE PASSWORD OF A USER
-ALTER USER prajeeth WITH PASSWORD 'new password'; (Need to quote password or will get message : SyntaxException: <ErrorMessage code=2000 [Syntax error in CQL query] message="line 1:34 mismatched input 'prajeeth' expecting STRING_LITERAL (alter user prajeeth with password [prajeeth];)">
 
-NEED TO KNOW
-$CASSANDRA_HOME/bin/cqlsh calls $CASSANDRA_HOME/bin/cqlsh.py
 
+
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  USER / ROLE  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+CREATE USER GENERAL SYNTAX 
+https://cassandra.apache.org/doc/latest/cassandra/cql/security.html
+
+CREATE ROLE [ IF NOT EXISTS ] <role_name>
+ [ WITH PASSWORD = 'string' AND
+        LOGIN = boolean AND 
+        SUPERUSER = boolean AND 
+        OPTIONS = map_literal AND
+        ACCESS TO DATACENTERS set_literal AND
+        ACCESS TO ALL DATACENTERS
+ ];
+
+CREATE ROLE IF NOT EXISTS prajeeth WITH PASSWORD = 'prajeeth' AND LOGIN = true AND SUPERUSER = false;
+
+
+
+~ ~ ~ HOW TO CHANGE PASSWORD OF A USER
+ALTER USER prajeeth WITH PASSWORD 'new password'; 
+
+NOTE : 
+Need to quote password or will get message : SyntaxException: <ErrorMessage code=2000 [Syntax error in CQL query] 
+message="line 1:34 mismatched input 'prajeeth' expecting STRING_LITERAL (alter user prajeeth with password [prajeeth];)">
+
+NOTE :
 Login in with wrong password will give below error message
-Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connection error: ('Unable to connect to any servers', {'orcl1': AuthenticationFailed(u'Failed to authenticate to orcl1: 
+code=0100 [Bad credentials] message="Username and/or password are incorrect"',)})
 
-CREATE KEYSPACE
----------------------------------
-create keyspace testks with replication = {'class' : 'SimpleStrategy', 'replication_factor' : 1};
 
-CREATE KEYSPACE IF NOT EXISTS dbrnd WITH replication = {'class': 'SimpleStrategy', 'replication_factor' : 3};
 
-Creating internal user accounts 
------------------------------------
-create user prajeeth with password 'prajeeth' NOSUPERUSER
+DROP USER/ROLE
+DROP ROLE [ IF EXISTS ] role_name;
+
+
+GRANT ROLE
+GRANT role_name TO role_name
+
+
+REVOKE ROLE
+REVOKE role_name FROM role_name
+
+
+LIST ROLES
+LIST ROLES [ OF role_name] [ NORECURSIVE ]
+Example :LIST ROLES OF alice;
+
+
+
+
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ KEYSPACE  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  
+
+HOW TO CREATE KEYSPACE
+
+CREATE KEYSPACE testks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} 
+ AND durable_writes = true;
 
 DESCRIBE
------------------------------------
 desc keyspaces
 testks  system_schema  system_auth  system  system_distributed  system_traces
 
 cqlsh> desc testks
 
-CREATE KEYSPACE testks WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'} 
- AND durable_writes = true;
+
 
 cqlsh> use testks
    ... ;
 
-CONNECTING TO CQLSH
------------------------------------
-LD_LIBRARY_PATH=/opt/apache/apache-cassandra-3.7/lib:/usr/local/lib/
-export LD_LIBRARY_PATH
 
-bigdata@orcl1 ~]$ /opt/apache/apache-cassandra-3.7/bin/cqlsh -u prajeeth -p redhat -k testks
-Connected to cassandra1 at orcl1:9042.
-[cqlsh 5.0.1 | Cassandra 3.7 | CQL spec 3.4.2 | Native protocol v4]
-Use HELP for help.
-prajeeth@cqlsh:testks>
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ TABLE ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
 
-
-CREATE TABLE
-------------------------------------
 CREATE TABLE testks.employee (
    empid varchar,
    fname varchar,
@@ -140,7 +167,7 @@ cassandra.yaml:authorizer: CassandraAuthorizer
 
 
 GRANT SELECT PERMISSION ON testks.employee TO prajeeth;
-------------------------------------------------------------------------------------------------------------------------------------------
+
 CREATE COLUMNFAMILY profile (
    id varchar,
    account varchar,
@@ -169,22 +196,105 @@ INSERT INTO sample (rowkey, nameval ) VALUES ( '2','Thomas');
 https://cassandra.apache.org/doc/latest/tools/cqlsh.html
 ------------------------------------------------------------------------------------------------------------------------------------------
 
-SHOW VERSION;
+show version;
+
+
+
+dba@cqlsh> help
 
 dba@cqlsh> show host;
 Connected to cassandra1 at orcl1:9042.
 
+CAPTURE '/home/hadoop/CassandraProgs/Outputfile'
+select * from employess <== captures the results in capture file
+capture off;
+
+
+CONSISTENCY
+prajeeth@cqlsh:testks> CONSISTENCY
+Current consistency level is ONE.
+
+Copy
+COPY emp (emp_id, emp_city, emp_name, emp_phone,emp_sal) TO ‘myfile’;
+
+
+
+Expand
+expand on;
+select * from emp;
+@ Row 1
+-----------+------------
+    emp_id | 1
+  emp_city | Hyderabad
+  emp_name | ram
+ emp_phone | 9848022338
+   emp_sal | 50000
+
+expand off;
+
+Source
+source '/home/hadoop/CassandraProgs/inputfile'; (Similar to @ symbol in Oracle)
+
+describe cluster;
 DESCRIBE SCHEMA
-DESCRIBE KEYSPACES
+DESCRIBE KEYSPACES  : This command lists all the keyspaces in a cluster
 DESCRIBE KEYSPACE <keyspace name>
-DESCRIBE TABLES
-DESCRIBE TABLE <table name>
+DESCRIBE TABLES      : to see all table names in currentl keyspace
+DESCRIBE TABLE <table name>  : To see DDL of table
 DESCRIBE INDEX <index name>
 DESCRIBE MATERIALIZED VIEW <view name>
-DESCRIBE TYPES
+DESCRIBE TYPES  : This command lists all the user-defined data types
 DESCRIBE TYPE <type name>
 DESCRIBE FUNCTIONS
 DESCRIBE FUNCTION <function name>
 DESCRIBE AGGREGATES
 DESCRIBE AGGREGATE <aggregate function name>
+
+~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~  PERMISSIONS  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ 
+
+https://cassandra.apache.org/doc/latest/cassandra/cql/security.html#cql-permissions
+https://docs.datastax.com/en/cql-oss/3.3/cql/cql_reference/cqlRevoke.html
+
+
+GRANT
+GRANT privilege  ON resource TO role_name
+
+
+REVOKE
+REVOKE privilege  ON resource_name FROM role_name;
+
+PERMISSIONS/PRIVILEGES
+ALL PERMISSIONS
+ALTER
+AUTHORIZE
+CREATE
+DESCRIBE
+DROP
+EXECUTE
+MODIFY
+REVOKE
+SELECT
+
+RESOURCES
+ALL FUNCTIONS
+ALL FUNCTIONS IN KEYSPACE keyspace_name
+FUNCTION function_name
+ALL KEYSPACES
+KEYSPACE keyspace_name
+TABLE table_name
+ALL ROLES
+ROLE role_name
+
+
+
+GRANT CREATE TABLE PERMISSION
+GRANT CREATE ON KEYSPACE TO prajeeth;
+
+REVOKE CREATE TABLE PERMISSION
+revoke create on keyspace <keyspace name> from <user / role>;
+
+REVOKE DROP TABLE PERMISSION
+revoke drop on keyspace <keyspace name> from <user / role>;
+
+
 
